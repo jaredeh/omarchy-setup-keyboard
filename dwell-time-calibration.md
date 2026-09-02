@@ -1,6 +1,6 @@
 # Dwell-Time Calibration
 
-*A proposed `omarchy setup keyboard` wizard*
+*A proposed `omarchy setup keyboard repeat-delay` wizard*
 
 A tool that measures how long you actually hold keys, then sets `repeat_delay` just
 above your worst case — and tells you when the problem is your switches instead.
@@ -8,7 +8,7 @@ above your worst case — and tells you when the problem is your switches instea
 | | |
 |---|---|
 | **Status** | Proposal |
-| **Surface** | `omarchy setup keyboard` |
+| **Surface** | `omarchy setup keyboard repeat-delay` |
 | **Built as** | Quickshell QML plugin + bash helper |
 | **Distributed as** | Git plugin — `omarchy plugin add` |
 | **Target** | Hyprland 0.56.2, Quickshell 0.3.1 |
@@ -379,15 +379,15 @@ omarchy plugin add https://github.com/jaredeh/omarchy-keyboard-setup --enable
 `keepLoaded: true` is required so the `IpcHandler` exists before anything calls it.
 
 **A plugin cannot put a binary on `PATH`.** That is the one thing this form gives up:
-`omarchy setup keyboard` exists only if the tool is upstreamed into `bin/`. Until then the
+`omarchy setup keyboard repeat-delay` exists only if the tool is upstreamed into `bin/`. Until then the
 wizard is summoned from a keybinding or the Omarchy menu, and `apply.sh` is invoked by
 absolute path from inside the plugin directory.
 
 | | As a git plugin (now) | Upstreamed (later) |
 |---|---|---|
 | Install | `omarchy plugin add <url>` | ships with Omarchy |
-| Trigger | keybinding or Omarchy menu | `omarchy setup keyboard` |
-| Helper | `apply.sh` in the plugin dir | `bin/omarchy-setup-keyboard` on `PATH` |
+| Trigger | keybinding or Omarchy menu | `omarchy setup keyboard repeat-delay` |
+| Helper | `apply.sh` in the plugin dir | `bin/omarchy-setup-keyboard-repeat-delay` on `PATH` |
 | Approval needed | none | Discussion, then PR |
 
 ### Development
@@ -397,6 +397,18 @@ The plugin directory hot-reloads on save, so clone the repository directly to
 restart cycle while iterating on QML. `omarchy-shell shell rescanPlugins` forces a reload
 if a change fails to take, and `omarchy plugin validate <folder>` mirrors the checks in
 `shell/services/PluginRegistry.qml`, so it refuses anything the running shell would reject.
+
+### Naming
+
+Omarchy derives a command's route from its binary filename, hyphens becoming spaces:
+`omarchy-setup-direct-boot` is invoked as `omarchy setup direct boot`. No command in the
+CLI uses an underscore. So the idiomatic form is a nested `keyboard` group with a
+kebab-case leaf — `omarchy setup keyboard repeat-delay`, from
+`bin/omarchy-setup-keyboard-repeat-delay` — rather than `keyboard_repeat_delay`.
+
+The nesting also leaves room: `repeat-rate`, `layout`, and `chatter` are plausible
+siblings under the same `keyboard` group, and a bare `omarchy setup keyboard` would have
+claimed that space for one setting.
 
 ### Upstreaming
 
@@ -410,7 +422,7 @@ Upstreaming is also what unlocks a real CLI surface, in the `omarchy setup` grou
 
 | Command | Behavior |
 |---|---|
-| `omarchy setup keyboard` | Run the guided calibration, merge into the stored histogram, show the distribution, offer safe / tight margins, apply with revert-on-timeout. |
+| `omarchy setup keyboard repeat-delay` | Run the guided calibration, merge into the stored histogram, show the distribution, offer safe / tight margins, apply with revert-on-timeout. |
 | `… --show` | Print the current value, the stored histogram, the sample count, and the measured headroom without changing anything. |
 | `… --device <name>` | Calibrate one keyboard into a Hyprland per-device section rather than the global input block. |
 | `… --reset` | Remove the managed block and the stored histogram, falling back to the Omarchy default. |

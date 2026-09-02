@@ -4,10 +4,10 @@ A wizard that measures how long you actually hold keys, then sets Hyprland's
 `repeat_delay` just above your worst case — and tells you when the problem is your
 switches instead.
 
-> **Status: design + validated spike. Not installable yet.**
-> `manifest.json` points at `Calibrate.qml`, which does not exist. `omarchy plugin add`
-> will refuse it until the overlay is written. What *does* work today is
-> `spike/dwell-probe.qml`, which proves the measurement is possible.
+> **Status: installable, lightly tested.** `omarchy plugin validate` passes and
+> `apply.sh` is verified end to end (write, idempotent re-run, `--show`, `--reset`,
+> input rejection). The wizard overlay itself has not yet been driven through a full
+> session, and there is no keybinding wired up — you summon it over IPC for now.
 
 ## The problem
 
@@ -39,7 +39,23 @@ between, or re-pressed within 20ms — which no `repeat_delay` value can fix. En
 
 Full rationale, architecture, and open questions: [`dwell-time-calibration.md`](dwell-time-calibration.md)
 
-## Try the spike
+## Use it
+
+```bash
+omarchy plugin add https://github.com/jaredeh/omarchy-keyboard-setup --enable
+qs ipc call keyboard-repeat start
+```
+
+The wizard walks three steps: it explains what `repeat_delay` does and shows your current
+value, gives you a passage to type while it times every keystroke, then shows you the
+measured distribution with your current limit and a suggested one. **You move the line and
+confirm before anything is written** — drag it, or use ←/→ (Shift for 50ms), `S` to snap
+back to the suggestion, `R` to retest. Enter commits; Escape leaves everything alone.
+
+Writes land in `~/.config/hypr/input.lua` inside a managed block, so re-running replaces
+the value rather than stacking another one. `./apply.sh --reset` removes it entirely.
+
+## Try just the measurement
 
 ```bash
 qs -p ./spike/dwell-probe.qml
