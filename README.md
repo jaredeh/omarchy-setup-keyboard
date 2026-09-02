@@ -1,4 +1,4 @@
-# omarchy-keyboard-setup
+# omarchy-setup-keyboard
 
 Tunes Hyprland's key repeat delay to how *you* type — and tells you when your keyboard is
 actually broken.
@@ -11,7 +11,7 @@ failing switch.
 ## Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/jaredeh/omarchy-keyboard-setup/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/jaredeh/omarchy-setup-keyboard/main/install.sh | bash
 ```
 
 Installs the plugin and adds its menu entry. Pipe it to `bash`, not `sh`.
@@ -19,7 +19,7 @@ Installs the plugin and adds its menu entry. Pipe it to `bash`, not `sh`.
 To read it first, or to remove everything again:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/jaredeh/omarchy-keyboard-setup/main/install.sh -o install.sh
+curl -fsSL https://raw.githubusercontent.com/jaredeh/omarchy-setup-keyboard/main/install.sh -o install.sh
 less install.sh && bash install.sh
 bash install.sh --uninstall
 ```
@@ -27,7 +27,7 @@ bash install.sh --uninstall
 ## Manual install
 
 ```bash
-omarchy plugin add https://github.com/jaredeh/omarchy-keyboard-setup --enable
+omarchy plugin add https://github.com/jaredeh/omarchy-setup-keyboard --enable
 ```
 
 Add one entry to `~/.config/omarchy/extensions/omarchy-menu.jsonc`:

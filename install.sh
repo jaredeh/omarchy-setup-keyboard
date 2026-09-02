@@ -1,7 +1,7 @@
 #!/bin/bash
 # install.sh — install the plugin and register its Omarchy menu entry.
 #
-#   curl -fsSL https://raw.githubusercontent.com/jaredeh/omarchy-keyboard-setup/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/jaredeh/omarchy-setup-keyboard/main/install.sh | bash
 #   ./install.sh              install and register
 #   ./install.sh --uninstall  remove both
 #
@@ -12,7 +12,7 @@
 
 set -o pipefail
 
-REPO_URL="https://github.com/jaredeh/omarchy-keyboard-setup"
+REPO_URL="https://github.com/jaredeh/omarchy-setup-keyboard"
 PLUGIN_ID="jaredeh.keyboard-calibration"
 PLUGIN_DIR="$HOME/.config/omarchy/plugins/$PLUGIN_ID"
 MENU="${OMARCHY_MENU_FILE:-$HOME/.config/omarchy/extensions/omarchy-menu.jsonc}"

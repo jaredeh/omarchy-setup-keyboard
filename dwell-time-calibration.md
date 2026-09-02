@@ -359,7 +359,7 @@ the manifest `id`. So this repository *is* the plugin, and shipping it requires 
 maintainer approval and no packaging:
 
 ```bash
-omarchy plugin add https://github.com/jaredeh/omarchy-keyboard-setup --enable
+omarchy plugin add https://github.com/jaredeh/omarchy-setup-keyboard --enable
 ```
 
 ```json
