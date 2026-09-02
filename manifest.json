@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "jaredeh.keyboard-calibration",
+  "name": "Keyboard Calibration",
+  "version": "0.1.0",
+  "author": "Jared Hulbert",
+  "description": "Measure key dwell time to calibrate repeat_delay and detect switch chatter.",
+  "kinds": [
+    "overlay"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "overlay": "Calibrate.qml"
+  }
+}
