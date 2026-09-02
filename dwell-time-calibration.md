@@ -197,8 +197,9 @@ overlay closing.
 
 **Flow:**
 
-1. A keybinding or the Omarchy menu calls `qs ipc call keyboard-calibration start`
-2. The handler returns `"ok"` immediately — it does not block for the length of the test
+1. A keybinding calls `omarchy-shell shell toggle jaredeh.keyboard-calibration`
+2. The shell's plugin loader creates the overlay — `keepLoaded: false`, so every
+   summon starts from a clean state, which is what a wizard wants
 3. The overlay records press/release keyed by `nativeScanCode`, discarding `isAutoRepeat`
 4. QML computes P100 and the chatter signature, draws the distribution, offers the margin
 5. QML invokes `apply.sh <value>` by absolute path through Quickshell's `Process`
@@ -378,15 +379,19 @@ omarchy plugin add https://github.com/jaredeh/omarchy-keyboard-setup --enable
 `kinds: ["overlay"]` matches `omarchy.clipboard` — a summoned full-screen surface.
 `keepLoaded: true` is required so the `IpcHandler` exists before anything calls it.
 
-**A plugin cannot put a binary on `PATH`.** That is the one thing this form gives up:
-`omarchy setup keyboard repeat-delay` exists only if the tool is upstreamed into `bin/`. Until then the
-wizard is summoned from a keybinding or the Omarchy menu, and `apply.sh` is invoked by
-absolute path from inside the plugin directory.
+**A plugin cannot register a subcommand.** The `omarchy` dispatcher sets `OMARCHY_BIN_DIR`
+to its own directory and resolves subcommands only there — it never scans `PATH` — so
+`omarchy setup keyboard repeat-delay` exists only if the tool is upstreamed into `bin/`.
+
+That is less of a loss than it sounds. Summoning by plugin id *is* the idiomatic route for
+an overlay: Omarchy binds its own clipboard as
+`omarchy-shell shell toggle omarchy.clipboard`, and this plugin is reached the same way.
+`apply.sh` is invoked by absolute path from inside the plugin directory.
 
 | | As a git plugin (now) | Upstreamed (later) |
 |---|---|---|
 | Install | `omarchy plugin add <url>` | ships with Omarchy |
-| Trigger | keybinding or Omarchy menu | `omarchy setup keyboard repeat-delay` |
+| Trigger | `omarchy-shell shell toggle <id>` | `omarchy setup keyboard repeat-delay` |
 | Helper | `apply.sh` in the plugin dir | `bin/omarchy-setup-keyboard-repeat-delay` on `PATH` |
 | Approval needed | none | Discussion, then PR |
 

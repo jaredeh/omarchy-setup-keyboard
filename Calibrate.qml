@@ -20,8 +20,18 @@ Item {
   id: root
 
   // ---- lifecycle --------------------------------------------------------
+  //
+  // Overlay plugins are summoned by id — `omarchy-shell shell toggle <id>` —
+  // and with keepLoaded false the shell creates this item on summon and
+  // destroys it on hide. Existence is the open state, so there is no local
+  // `open` flag and every session starts clean, which is what a wizard wants.
+  //
+  // These three are injected by the shell's plugin loader if declared.
 
-  property bool open: false
+  property var shell: null
+  property var manifest: null
+  property string omarchyPath: Quickshell.env("OMARCHY_PATH")
+
   property string phase: "intro"          // intro | typing | review | done
   readonly property string pluginDir: Qt.resolvedUrl(".").toString().replace("file://", "")
 
@@ -159,8 +169,8 @@ Item {
 
   function close() {
     if (phase === "typing") restoreRepeat.running = true
-    open = false
-    phase = "intro"
+    var id = manifest && manifest.id ? manifest.id : "jaredeh.keyboard-calibration"
+    if (shell && typeof shell.hide === "function") shell.hide(id)
   }
 
   // ---- processes --------------------------------------------------------
@@ -199,28 +209,24 @@ Item {
     }
   }
 
-  IpcHandler {
-    target: "keyboard-repeat"
-    function start(): string { root.open = true; root.phase = "intro"; readDelay.running = true; return "ok" }
-    function close(): string { root.close(); return "ok" }
-    function state(): string { return root.open ? root.phase : "closed" }
-    function ping(): string { return "ok" }
-  }
+  Component.onCompleted: readDelay.running = true
 
   // ---- surface ----------------------------------------------------------
 
   PanelWindow {
     id: win
-    visible: root.open
+    visible: true
 
     anchors { top: true; bottom: true; left: true; right: true }
     color: Color.menu.scrim
 
     WlrLayershell.namespace: "omarchy-keyboard-repeat"
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.keyboardFocus: root.open ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
-    onVisibleChanged: if (visible) Qt.callLater(function () { keys.forceActiveFocus() })
+    // Layer-shell grants focus to the surface, but Qt still needs an
+    // active-focus item inside it before Keys.* fires at all.
+    Component.onCompleted: Qt.callLater(function () { keys.forceActiveFocus() })
 
     FocusScope {
       id: keys

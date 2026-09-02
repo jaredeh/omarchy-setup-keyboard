@@ -16,25 +16,23 @@ omarchy plugin add https://github.com/jaredeh/omarchy-keyboard-setup --enable
 
 ## Run
 
-Bind it — add to `~/.config/hypr/bindings.lua`:
-
-```lua
-o.bind("SUPER CTRL", "K", "Calibrate key repeat", function()
-  hl.dispatch(hl.dsp.exec("qs ipc call keyboard-repeat start"))
-end)
+```bash
+omarchy-shell shell toggle jaredeh.keyboard-calibration
 ```
 
-Or call it directly:
+Bind it the way Omarchy binds its own overlays — in `~/.config/hypr/bindings.lua`:
 
-```bash
-qs ipc call keyboard-repeat start
+```lua
+o.bind("SUPER + CTRL + K", "Calibrate key repeat",
+  "omarchy-shell shell toggle jaredeh.keyboard-calibration")
 ```
 
 > **Why not `omarchy setup keyboard repeat-delay`?**
 > That is the name this would take as a built-in, and the design doc proposes it. The
 > `omarchy` dispatcher resolves subcommands only inside its own `bin` directory, never
-> `PATH`, so no installed plugin can register one — it would mean writing into `/usr/bin`.
-> Until this is upstreamed, a keybinding is the real front door.
+> `PATH`, so no installed plugin can register one. Summoning by plugin id is how every
+> Omarchy overlay works — `SUPER + CTRL + V` is
+> `omarchy-shell shell toggle omarchy.clipboard`.
 
 ## What happens
 
