@@ -11,6 +11,15 @@ failing switch.
 ## Install
 
 ```bash
+git clone https://github.com/jaredeh/omarchy-keyboard-setup
+./omarchy-keyboard-setup/install.sh
+```
+
+Installs the plugin and adds its menu entry. `./install.sh --uninstall` removes both.
+
+## Manual install
+
+```bash
 omarchy plugin add https://github.com/jaredeh/omarchy-keyboard-setup --enable
 ```
 
