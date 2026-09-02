@@ -42,6 +42,11 @@ Item {
   // measurement, and including them would recommend an absurd delay.
   readonly property int holdCeilingMs: 600
 
+  // Finishing early is allowed, but not from a handful of keystrokes: the
+  // whole point is the tail, and a tail estimate from ten samples is a guess
+  // wearing a number's clothing. Below this the affordance is not offered.
+  readonly property int minSamples: 40
+
   property var downAt: ({})
   property var upAt: ({})
   property var dwells: []
@@ -131,6 +136,7 @@ Item {
     if (dwell > holdCeilingMs) rejectedHolds++
     else dwells.push(dwell)
     tick++
+    if (phase === "typing") livePlot.requestPaint()
   }
 
   function typeChar(event) {
@@ -251,6 +257,17 @@ Item {
         }
 
         if (root.phase === "typing") {
+          // Ctrl+Enter / Ctrl+D end the sample early. Checked before anything
+          // else so the chord never lands in the transcript, and gated on a
+          // usable sample size.
+          var finishChord = (event.modifiers & Qt.ControlModifier) &&
+                            (event.key === Qt.Key_Return || event.key === Qt.Key_Enter ||
+                             event.key === Qt.Key_D)
+          if (finishChord) {
+            if (root.dwells.length >= root.minSamples) root.finishTyping()
+            return
+          }
+
           // Qt synthesises repeat as flagged press/release pairs. Dropping
           // both halves keeps the dwell pairing intact and stops repeats from
           // filling the transcript, which is why this needs no global
@@ -502,6 +519,32 @@ Item {
               }
             }
 
+            Canvas {
+              id: livePlot
+              width: parent.width
+              height: Style.space(120)
+              onPaint: root.paintPlot(getContext("2d"), width, height, true)
+            }
+
+            Text {
+              width: parent.width
+              wrapMode: Text.WordWrap
+              color: root.wouldDoubleAtCurrent > 0 ? Color.urgent : Color.muted
+              font.family: Style.font.family
+              font.pixelSize: Style.font.bodySmall
+              text: {
+                root.tick
+                if (root.dwells.length === 0)
+                  return "Every keystroke lands here as you type."
+                if (root.wouldDoubleAtCurrent === 0)
+                  return "Nothing has crossed your current " + root.currentDelay +
+                         " ms limit yet."
+                return root.wouldDoubleAtCurrent + " of " + root.dwells.length +
+                       " keystrokes crossed " + root.currentDelay +
+                       " ms — each of those doubles a character today."
+              }
+            }
+
             Rectangle {
               width: parent.width
               height: Style.space(4)
@@ -518,10 +561,18 @@ Item {
             }
 
             Text {
-              text: "Esc to cancel"
-              color: Color.muted
+              width: parent.width
+              wrapMode: Text.WordWrap
+              color: root.dwells.length >= root.minSamples ? Color.accent : Color.muted
               font.family: Style.font.family
               font.pixelSize: Style.font.caption
+              text: {
+                root.tick
+                if (root.dwells.length >= root.minSamples)
+                  return "Ctrl+Enter to finish now  ·  Esc to cancel"
+                return "Type " + (root.minSamples - root.dwells.length) +
+                       " more to enable Ctrl+Enter to finish early  ·  Esc to cancel"
+              }
             }
           }
 
@@ -552,7 +603,7 @@ Item {
               id: plot
               width: parent.width
               height: Style.space(190)
-              onPaint: root.paintPlot(getContext("2d"), width, height)
+              onPaint: root.paintPlot(getContext("2d"), width, height, false)
 
               MouseArea {
                 anchors.fill: parent
@@ -794,7 +845,7 @@ Item {
     chosenDelay = Math.max(100, Math.min(1500, Math.round(ms / 10) * 10))
   }
 
-  function paintPlot(ctx, w, h) {
+  function paintPlot(ctx, w, h, live) {
     ctx.reset()
     var base = h - Style.space(24)
 
@@ -821,7 +872,7 @@ Item {
       var x0 = msToX(b * binMs, w)
       var x1 = msToX((b + 1) * binMs, w)
       var bh = (bins[b] / peak) * (base - Style.space(14))
-      ctx.fillStyle = String((b * binMs) >= chosenDelay ? Color.urgent : Color.accent)
+      ctx.fillStyle = String((b * binMs) >= (live ? currentDelay : chosenDelay) ? Color.urgent : Color.accent)
       ctx.fillRect(x0, base - bh, Math.max(1, x1 - x0 - 1), bh)
     }
 
@@ -834,6 +885,16 @@ Item {
     ctx.fillStyle = String(Color.muted)
     ctx.font = Style.font.caption + "px sans-serif"
     ctx.fillText("current " + currentDelay, xc + 4, 11)
+
+    if (live) {
+      // Live view: the current limit is the whole story. No handle, no
+      // suggestion — the sample is still being collected.
+      ctx.fillStyle = String(Color.muted)
+      ctx.font = Style.font.caption + "px sans-serif"
+      for (var lms = 0; lms <= plotMaxMs; lms += 200)
+        ctx.fillText(String(lms), msToX(lms, w) - 8, h - Style.space(6))
+      return
+    }
 
     // suggestion — faint tick
     var xs = msToX(suggestedDelay, w)
