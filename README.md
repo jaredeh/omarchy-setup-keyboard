@@ -14,10 +14,7 @@ failing switch.
 omarchy plugin add https://github.com/jaredeh/omarchy-keyboard-setup --enable
 ```
 
-## Run
-
-Add one entry to `~/.config/omarchy/extensions/omarchy-menu.jsonc` (the file
-hot-reloads, so it appears immediately):
+Add one entry to `~/.config/omarchy/extensions/omarchy-menu.jsonc`:
 
 ```jsonc
 "setup.keyboard-repeat": {
@@ -29,25 +26,15 @@ hot-reloads, so it appears immediately):
 }
 ```
 
-It now lives under **SUPER + SPACE → Setup → Keyboard repeat**, next to Monitors and
-Input — and typing "double" or "repeat" into the menu finds it. From a terminal:
+## Run
+
+**SUPER + SPACE → Setup → Keyboard repeat**, or open the menu and type `double`.
+
+From a terminal:
 
 ```bash
 omarchy menu summon setup.keyboard-repeat
 ```
-
-A keybinding is available if you want one, but a setting you touch twice a year does not
-really deserve a chord:
-
-```lua
-o.bind("SUPER + CTRL + K", "Calibrate key repeat",
-  "omarchy-shell shell summon jaredeh.keyboard-calibration")
-```
-
-> **Why not `omarchy setup keyboard repeat-delay`?**
-> That is the name this would take as a built-in, and the design doc proposes it. The
-> `omarchy` dispatcher resolves subcommands only inside its own `bin` directory, never
-> `PATH`, so no installed plugin can register one.
 
 ## What happens
 
@@ -95,14 +82,13 @@ It found the same key pressed twice with no release between, or re-pressed withi
 That's a failing switch, and no repeat delay will fix it — replace the switch. The tool
 names which key so you don't have to guess.
 
-## Status
+## Also here
 
-Works, lightly tested. `apply.sh` is verified end to end; the wizard overlay has been
-built but not yet driven through a full session on a fresh install. No screenshot yet.
+[`dwell-time-calibration.md`](dwell-time-calibration.md) — why this measures dwell time,
+how the value gets chosen, and what remains unproven.
 
-Design rationale, measurements, and open questions:
-[`dwell-time-calibration.md`](dwell-time-calibration.md).
-A standalone measurement probe with no UI lives in [`spike/`](spike/dwell-probe.qml).
+[`spike/dwell-probe.qml`](spike/dwell-probe.qml) — a bare measurement probe. Run it with
+`qs -p ./spike/dwell-probe.qml` to print your dwell distribution, with no UI and no writes.
 
 ## License
 
