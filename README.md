@@ -1,12 +1,10 @@
 # omarchy-setup-keyboard
 
-Tunes Hyprland's key repeat delay to how *you* type — and tells you when your keyboard is
-actually broken.
+Tunes Hyprland's key repeat delay to how *you* type — and tells you when your keyboard is actually broken.
 
-If your keyboard seems to double-type, it's probably not the switches. Omarchy ships
-`repeat_delay = 250`; Hyprland's own default is 600. At 250ms a normal pause mid-word
-crosses the repeat threshold and emits a second character, which feels exactly like a
-failing switch.
+If your keyboard seems to double-type, it's probably not the switches. Omarchy ships `repeat_delay = 250`; Hyprland's own default is 600. At 250ms a normal pause mid-word crosses the repeat threshold and emits a second character, which feels exactly like a failing switch.
+
+![The review screen: a histogram of measured key hold durations, with the current limit marked and a threshold line the user can move before confirming](imgs/tool.png)
 
 ## Install
 
@@ -14,15 +12,7 @@ failing switch.
 curl -fsSL https://raw.githubusercontent.com/jaredeh/omarchy-setup-keyboard/main/install.sh | bash
 ```
 
-Installs the plugin and adds its menu entry. Pipe it to `bash`, not `sh`.
-
-To read it first, or to remove everything again:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/jaredeh/omarchy-setup-keyboard/main/install.sh -o install.sh
-less install.sh && bash install.sh
-bash install.sh --uninstall
-```
+Installs the plugin and adds its menu entry.
 
 ## Manual install
 
@@ -46,6 +36,8 @@ Add one entry to `~/.config/omarchy/extensions/omarchy-menu.jsonc`:
 
 **SUPER + SPACE → Setup → Keyboard repeat**, or open the menu and type `double`.
 
+![The Omarchy menu with Keyboard repeat listed under Setup, below Direct Boot and Reset Computer](imgs/menu.png)
+
 From a terminal:
 
 ```bash
@@ -57,11 +49,8 @@ omarchy menu summon setup.keyboard-repeat
 Three steps, all keyboard-driven.
 
 1. **Explains** what the setting does and shows your current value.
-2. **Times you typing** a short passage — every press and release, so it learns how long
-   you actually hold keys. Pause mid-word when you lose your place; those pauses are the
-   whole point.
-3. **Shows you the data** and lets you pick. Your current limit and a suggested one are
-   marked on the distribution. Move the line wherever you want, then confirm.
+2. **Times you typing** a short passage — every press and release, so it learns how long you actually hold keys. Pause mid-word when you lose your place; those pauses are the whole point.
+3. **Shows you the data** and lets you pick. Your current limit and a suggested one are marked on the distribution. Move the line wherever you want, then confirm.
 
 Nothing is written until you press Enter on an explicit confirmation.
 
@@ -84,8 +73,7 @@ hl.config({ input = { repeat_delay = 430 } })
 -- <<< omarchy:keyboard-repeat
 ```
 
-Re-running replaces that block rather than adding another. Every write makes a timestamped
-backup alongside the file.
+Re-running replaces that block rather than adding another. Every write makes a timestamped backup alongside the file.
 
 ```bash
 ./apply.sh --show     # what's currently set
@@ -95,8 +83,7 @@ backup alongside the file.
 ## If it says your keyboard is chattering
 
 It found the same key pressed twice with no release between, or re-pressed within 20ms.
-That's a failing switch, and no repeat delay will fix it — replace the switch. The tool
-names which key so you don't have to guess.
+That's a failing switch, and no repeat delay will fix it — replace the switch. The tool names which key so you don't have to guess.
 
 ## Also here
 
