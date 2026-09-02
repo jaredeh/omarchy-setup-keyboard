@@ -11,11 +11,18 @@ failing switch.
 ## Install
 
 ```bash
-git clone https://github.com/jaredeh/omarchy-keyboard-setup
-./omarchy-keyboard-setup/install.sh
+curl -fsSL https://raw.githubusercontent.com/jaredeh/omarchy-keyboard-setup/main/install.sh | bash
 ```
 
-Installs the plugin and adds its menu entry. `./install.sh --uninstall` removes both.
+Installs the plugin and adds its menu entry. Pipe it to `bash`, not `sh`.
+
+To read it first, or to remove everything again:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jaredeh/omarchy-keyboard-setup/main/install.sh -o install.sh
+less install.sh && bash install.sh
+bash install.sh --uninstall
+```
 
 ## Manual install
 

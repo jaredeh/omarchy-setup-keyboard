@@ -1,8 +1,11 @@
 #!/bin/bash
 # install.sh — install the plugin and register its Omarchy menu entry.
 #
+#   curl -fsSL https://raw.githubusercontent.com/jaredeh/omarchy-keyboard-setup/main/install.sh | bash
 #   ./install.sh              install and register
 #   ./install.sh --uninstall  remove both
+#
+# bash, not sh: this uses [[ ]], local, and ${var/#pat/rep}.
 #
 # Both directions are idempotent. The menu entry is written between markers so
 # it can be removed again without disturbing anything else in the file.
@@ -21,8 +24,6 @@ END="  // <<< $PLUGIN_ID"
 bold() { printf '\033[1m%s\033[0m\n' "$1"; }
 info() { printf '  %s\n' "$1"; }
 fail() { printf '\033[31minstall.sh: %s\033[0m\n' "$1" >&2; exit 1; }
-
-command -v omarchy >/dev/null || fail "omarchy not found — this installs an Omarchy shell plugin"
 
 # ---------------------------------------------------------------- menu entry
 
@@ -95,13 +96,19 @@ menu_add_entry() {
 # the menu logic can be exercised against a scratch file.
 [[ ${INSTALL_SH_LIB:-} == 1 ]] && return 0
 
-# ------------------------------------------------------------------ uninstall
+# ----------------------------------------------------------------------- main
+#
+# Everything that acts lives inside main(), and main runs on the very last
+# line. Piped to bash, the script is executed as it arrives, so a download that
+# dies halfway would otherwise run whatever it had already read. This way a
+# truncated file leaves an incomplete function definition that never runs.
 
-if [[ ${1:-} == "--uninstall" ]]; then
+uninstall() {
   bold "Removing $PLUGIN_ID"
 
   if menu_has_entry; then
     cp -f "$MENU" "$MENU.bak.$(date +%s%N)"
+    local tmp
     tmp=$(mktemp) && menu_strip_entry > "$tmp" && cp -f "$tmp" "$MENU" && rm -f "$tmp" \
       || fail "failed to remove the menu entry"
     info "menu entry removed"
@@ -117,33 +124,49 @@ if [[ ${1:-} == "--uninstall" ]]; then
   fi
 
   bold "Done."
-  exit 0
-fi
+}
 
-# -------------------------------------------------------------------- install
+install() {
+  bold "Installing $PLUGIN_ID"
 
-bold "Installing $PLUGIN_ID"
+  if [[ -d $PLUGIN_DIR ]]; then
+    info "plugin already installed at ~/.config/omarchy/plugins/$PLUGIN_ID"
+  else
+    # --yes matters here: piped to bash, stdin is the script itself, so
+    # anything that stopped to ask a question would read garbage or hang.
+    omarchy plugin add "$REPO_URL" --enable --yes || fail "omarchy plugin add failed"
+    info "plugin installed and enabled"
+  fi
 
-if [[ -d $PLUGIN_DIR ]]; then
-  info "plugin already installed at ~/.config/omarchy/plugins/$PLUGIN_ID"
-else
-  omarchy plugin add "$REPO_URL" --enable --yes || fail "omarchy plugin add failed"
-  info "plugin installed and enabled"
-fi
+  if menu_has_entry; then
+    info "menu entry already present"
+  else
+    [[ -f $MENU ]] && cp -f "$MENU" "$MENU.bak.$(date +%s%N)"
+    menu_add_entry
+    info "menu entry added to ${MENU/#$HOME/\~}"
+  fi
 
-if menu_has_entry; then
-  info "menu entry already present"
-else
-  [[ -f $MENU ]] && cp -f "$MENU" "$MENU.bak.$(date +%s%N)"
-  menu_add_entry
-  info "menu entry added to ${MENU/#$HOME/\~}"
-fi
+  # The menu file hot-reloads, but a freshly cloned plugin needs the shell to
+  # notice it. Best-effort: -q keeps this quiet when the shell is not running.
+  omarchy-shell -q shell rescanPlugins >/dev/null 2>&1
 
-# The menu file hot-reloads, but a freshly cloned plugin needs the shell to
-# notice it. Best-effort: -q keeps this quiet when the shell is not running.
-omarchy-shell -q shell rescanPlugins >/dev/null 2>&1
+  echo
+  bold "Run it"
+  info "SUPER + SPACE  →  Setup  →  Keyboard repeat"
+  info "omarchy menu summon setup.keyboard-repeat"
+}
 
-echo
-bold "Run it"
-info "SUPER + SPACE  →  Setup  →  Keyboard repeat"
-info "omarchy menu summon setup.keyboard-repeat"
+main() {
+  command -v omarchy >/dev/null \
+    || fail "omarchy not found — this installs an Omarchy shell plugin"
+  command -v jq >/dev/null \
+    || fail "jq not found — needed to edit the menu file safely"
+
+  case "${1:-}" in
+    --uninstall) uninstall ;;
+    "")          install ;;
+    *)           fail "unknown argument: $1 (expected --uninstall or nothing)" ;;
+  esac
+}
+
+main "$@"
