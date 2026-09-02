@@ -1,18 +1,18 @@
 # Dwell-Time Calibration
 
-*A proposed `omarchy setup keyboard repeat-delay` wizard*
+*Design notes for the calibration wizard*
 
 A tool that measures how long you actually hold keys, then sets `repeat_delay` just
 above your worst case — and tells you when the problem is your switches instead.
 
 | | |
 |---|---|
-| **Status** | Proposal |
+| **Status** | Built and shipping |
 | **Surface** | `omarchy setup keyboard repeat-delay` |
 | **Built as** | Quickshell QML plugin + bash helper |
 | **Distributed as** | Git plugin — `omarchy plugin add` |
 | **Target** | Hyprland 0.56.2, Quickshell 0.3.1 |
-| **Validated by** | `spike/dwell-probe.qml`, 144 samples |
+| **Validated by** | 350 measured keystrokes |
 
 ---
 
@@ -70,8 +70,7 @@ repeat-detection is blind to them.
  p50 143    p90 189    p99 256    max 433
 ```
 
-**Measured, not illustrative.** 144 keystrokes captured in one session on a YUNZII AL80
-with `spike/dwell-probe.qml`. Two of them — 1.4%, roughly one keystroke in seventy — exceed
+**Measured, not illustrative.** 144 keystrokes captured in one session on a YUNZII AL80. Two of them — 1.4%, roughly one keystroke in seventy — exceed
 250ms and would emit a phantom character on Omarchy's default. That rate is entirely
 consistent with the reported symptom of constant double-typing.
 
@@ -273,9 +272,9 @@ exposing `QKeyEvent::timestamp()`, not a different language for the tool.
 
 ## Verified on hardware
 
-`spike/dwell-probe.qml` is a ~200-line Quickshell overlay that captures press/release
-pairs and prints a summary. Three runs, 350 keystrokes, on a YUNZII AL80 under Hyprland
-0.56.2 and Quickshell 0.3.1:
+A throwaway Quickshell overlay captured press/release pairs before any of this was
+built. Three runs, 350 keystrokes, on a YUNZII AL80 under Hyprland 0.56.2 and
+Quickshell 0.3.1:
 
 | Assumption | Result |
 |---|---|

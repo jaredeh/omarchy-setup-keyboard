@@ -103,9 +103,6 @@ names which key so you don't have to guess.
 [`dwell-time-calibration.md`](dwell-time-calibration.md) — why this measures dwell time,
 how the value gets chosen, and what remains unproven.
 
-[`spike/dwell-probe.qml`](spike/dwell-probe.qml) — a bare measurement probe. Run it with
-`qs -p ./spike/dwell-probe.qml` to print your dwell distribution, with no UI and no writes.
-
 ## License
 
 MIT — see [LICENSE](LICENSE).
