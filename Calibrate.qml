@@ -167,10 +167,21 @@ Item {
     phase = "done"
   }
 
+  // close() is the shell's teardown hook, not our dismiss button: shell.hide()
+  // invokes it via invokeIfLoaded(id, "close"). Calling shell.hide() from in
+  // here recurses until the stack blows, the hide never completes, and the
+  // overlay stays up holding an exclusive grab on keyboard and pointer.
+  // Tear down only.
   function close() {
     if (phase === "typing") restoreRepeat.running = true
+  }
+
+  // What Escape actually calls. The shell invokes close() on the way through,
+  // then drops us from openPanelIds so the Loader destroys the item.
+  function dismiss() {
     var id = manifest && manifest.id ? manifest.id : "jaredeh.keyboard-calibration"
     if (shell && typeof shell.hide === "function") shell.hide(id)
+    else close()
   }
 
   // ---- processes --------------------------------------------------------
@@ -224,6 +235,15 @@ Item {
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
+    // Anything holding an exclusive grab on keyboard and pointer needs a way
+    // out that does not depend on its own code being correct.
+    Timer {
+      id: idleGuard
+      interval: 300000          // five minutes without a keystroke
+      running: true
+      onTriggered: root.dismiss()
+    }
+
     // Layer-shell grants focus to the surface, but Qt still needs an
     // active-focus item inside it before Keys.* fires at all.
     Component.onCompleted: Qt.callLater(function () { keys.forceActiveFocus() })
@@ -237,7 +257,8 @@ Item {
       Keys.onPressed: function (event) {
         event.accepted = true
 
-        if (event.key === Qt.Key_Escape) { root.close(); return }
+        idleGuard.restart()
+        if (event.key === Qt.Key_Escape) { root.dismiss(); return }
 
         if (root.phase === "intro") {
           if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) root.beginTyping()
@@ -262,7 +283,7 @@ Item {
 
         if (root.phase === "done") {
           if (event.key === Qt.Key_R) root.beginTyping()
-          else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) root.close()
+          else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) root.dismiss()
           return
         }
       }
