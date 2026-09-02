@@ -16,23 +16,38 @@ omarchy plugin add https://github.com/jaredeh/omarchy-keyboard-setup --enable
 
 ## Run
 
-```bash
-omarchy-shell shell toggle jaredeh.keyboard-calibration
+Add one entry to `~/.config/omarchy/extensions/omarchy-menu.jsonc` (the file
+hot-reloads, so it appears immediately):
+
+```jsonc
+"setup.keyboard-repeat": {
+  "icon": "󰌌",
+  "label": "Keyboard repeat",
+  "description": "Calibrate repeat delay from how you actually type",
+  "aliases": ["repeat-delay", "double-typing", "key-repeat"],
+  "action": "omarchy-shell shell summon jaredeh.keyboard-calibration"
+}
 ```
 
-Bind it the way Omarchy binds its own overlays — in `~/.config/hypr/bindings.lua`:
+It now lives under **SUPER + SPACE → Setup → Keyboard repeat**, next to Monitors and
+Input — and typing "double" or "repeat" into the menu finds it. From a terminal:
+
+```bash
+omarchy menu summon setup.keyboard-repeat
+```
+
+A keybinding is available if you want one, but a setting you touch twice a year does not
+really deserve a chord:
 
 ```lua
 o.bind("SUPER + CTRL + K", "Calibrate key repeat",
-  "omarchy-shell shell toggle jaredeh.keyboard-calibration")
+  "omarchy-shell shell summon jaredeh.keyboard-calibration")
 ```
 
 > **Why not `omarchy setup keyboard repeat-delay`?**
 > That is the name this would take as a built-in, and the design doc proposes it. The
 > `omarchy` dispatcher resolves subcommands only inside its own `bin` directory, never
-> `PATH`, so no installed plugin can register one. Summoning by plugin id is how every
-> Omarchy overlay works — `SUPER + CTRL + V` is
-> `omarchy-shell shell toggle omarchy.clipboard`.
+> `PATH`, so no installed plugin can register one.
 
 ## What happens
 

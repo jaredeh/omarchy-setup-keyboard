@@ -1,0 +1,20 @@
+// Add this to ~/.config/omarchy/extensions/omarchy-menu.jsonc
+//
+// The dotted id places it: "setup.keyboard-repeat" appears under the existing
+// Setup menu, beside Monitors, Keybindings, and Input. The file hot-reloads,
+// so it shows up as soon as you save.
+//
+// Reach it three ways:
+//   SUPER + SPACE, then Setup, then Keyboard repeat
+//   SUPER + SPACE, then type "double" or "repeat" — aliases and description
+//     are both searchable
+//   omarchy menu summon setup.keyboard-repeat
+
+"setup.keyboard-repeat": {
+  "icon": "󰌌",
+  "label": "Keyboard repeat",
+  "description": "Calibrate repeat delay from how you actually type",
+  "aliases": ["repeat-delay", "double-typing", "key-repeat"],
+  "when": "[[ -d ~/.config/omarchy/plugins/jaredeh.keyboard-calibration ]]",
+  "action": "omarchy-shell shell summon jaredeh.keyboard-calibration"
+}

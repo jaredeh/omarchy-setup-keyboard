@@ -21,7 +21,7 @@ Item {
 
   // ---- lifecycle --------------------------------------------------------
   //
-  // Overlay plugins are summoned by id — `omarchy-shell shell toggle <id>` —
+  // Overlay plugins are summoned by id — `omarchy-shell shell summon <id>` —
   // and with keepLoaded false the shell creates this item on summon and
   // destroys it on hide. Existence is the open state, so there is no local
   // `open` flag and every session starts clean, which is what a wizard wants.

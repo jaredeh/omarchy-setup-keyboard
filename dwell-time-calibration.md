@@ -197,7 +197,7 @@ overlay closing.
 
 **Flow:**
 
-1. A keybinding calls `omarchy-shell shell toggle jaredeh.keyboard-calibration`
+1. A keybinding calls `omarchy-shell shell summon jaredeh.keyboard-calibration`
 2. The shell's plugin loader creates the overlay — `keepLoaded: false`, so every
    summon starts from a clean state, which is what a wizard wants
 3. The overlay records press/release keyed by `nativeScanCode`, discarding `isAutoRepeat`
@@ -383,15 +383,36 @@ omarchy plugin add https://github.com/jaredeh/omarchy-keyboard-setup --enable
 to its own directory and resolves subcommands only there — it never scans `PATH` — so
 `omarchy setup keyboard repeat-delay` exists only if the tool is upstreamed into `bin/`.
 
-That is less of a loss than it sounds. Summoning by plugin id *is* the idiomatic route for
-an overlay: Omarchy binds its own clipboard as
-`omarchy-shell shell toggle omarchy.clipboard`, and this plugin is reached the same way.
-`apply.sh` is invoked by absolute path from inside the plugin directory.
+That is less of a loss than it sounds, because a subcommand was the wrong shape anyway.
+Omarchy has five ways to register something, and a calibration wizard is not a chord:
+
+| Mechanism | Declared in | Fits |
+|---|---|---|
+| Bar widget | `kinds: ["bar-widget"]` + a `barWidget` block | Persistent, glanceable state. Not this. |
+| Overlay / panel | `kinds: ["overlay"]`, summoned by id | The surface itself — yes |
+| Service | `kinds: ["service"]`, injected as `service` | Background state. Not needed. |
+| Keybinding | `o.bind()` in `bindings.lua` | Daily actions. A twice-a-year setting is not. |
+| Menu entry | `extensions/omarchy-menu.jsonc` | **Occasional, discoverable, searchable — this** |
+| Subcommand | a binary in `OMARCHY_BIN_DIR` | Upstream only |
+
+The menu is where this belongs. A dotted id infers its own hierarchy, so
+`setup.keyboard-repeat` lands under the existing Setup menu beside Monitors and Input;
+`aliases` and `description` are both searchable, so typing "double" finds it; `when` hides
+the row when the plugin is absent; and the file hot-reloads on save. Omarchy uses exactly
+this shape for its own Wi-Fi QR overlay:
+
+```jsonc
+"setup.network.qr": {"icon":"󰐲","label":"QR Code","aliases":["wifi-qr"],
+  "action":"omarchy-shell shell summon omarchy.wifiqr"}
+```
+
+`summon` rather than `toggle`: a wizard should open, not flip closed if the user reaches
+for it twice. `apply.sh` is invoked by absolute path from inside the plugin directory.
 
 | | As a git plugin (now) | Upstreamed (later) |
 |---|---|---|
 | Install | `omarchy plugin add <url>` | ships with Omarchy |
-| Trigger | `omarchy-shell shell toggle <id>` | `omarchy setup keyboard repeat-delay` |
+| Trigger | `omarchy-shell shell summon <id>` | `omarchy setup keyboard repeat-delay` |
 | Helper | `apply.sh` in the plugin dir | `bin/omarchy-setup-keyboard-repeat-delay` on `PATH` |
 | Approval needed | none | Discussion, then PR |
 
