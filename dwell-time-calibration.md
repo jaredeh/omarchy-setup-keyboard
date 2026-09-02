@@ -221,30 +221,23 @@ inherits `qs.Commons` theme tokens so the overlay matches the active theme for f
   the test directly, keeping the restore inside the same object lifetime that owns the
   measurement rather than round-tripping through `hyprctl`.
 
-### Suppressing repeat during the test
+### Not suppressing repeat during the test
 
-Qt implements `repeat_info` itself, and **it emits synthetic presses _and_ synthetic
-releases** — measured as symmetric pairs, 34 of each in a run with `repeat_delay` forced
-to 150ms. Both halves carry `isAutoRepeat`.
+An earlier version raised `repeat_delay` to 2000ms for the duration of the typing
+sample, so no synthetic events would be generated at all, and restored it afterwards.
+That is a mistake: it mutates global state for the length of a user interaction, and the
+restore is the one step guaranteed to be skipped when something goes wrong. In testing
+the overlay was killed mid-sample and left the system at 2000ms — a keyboard that will
+not repeat for two seconds, from a tool whose entire purpose is to fix key repeat.
 
-This makes filtering load-bearing rather than merely tidy. An unfiltered synthetic release
-would terminate a dwell measurement at `repeat_delay` instead of at the physical release,
-systematically truncating every long hold to the threshold and erasing exactly the tail the
-tool exists to measure. Filtering does work — a deliberate 1323ms hold measured end to end
-with the filter in place — but it works because the flag is set correctly on both halves,
-not because synthetic events are structurally incapable of corrupting the pairing.
+Filtering is enough on its own. Qt synthesises repeat as flagged press/release **pairs**,
+so dropping every event with `isAutoRepeat` keeps the real press/release pairing intact —
+verified against a deliberate 1323ms hold, which measured end to end. Dropping them
+before the transcript is updated also stops repeats from filling the typed block, which
+was the only thing suppression was really buying.
 
-So suppression is the robust primary and filtering is defense in depth. Raise
-`repeat_delay` for the duration of the test so no synthetic events are generated at all:
-
-```bash
-hyprctl eval 'hl.config({ input = { repeat_delay = 2000 } })'
-```
-
-**Not `hyprctl keyword`.** On Hyprland 0.56 that fails against Omarchy's Lua config with
-`keyword can't work with non-legacy parsers` — and still exits 0. `hyprctl reload` restores
-from `input.lua`, which means the managed block *is* the restore path and a tool that dies
-mid-test self-heals on the next reload.
+So the wizard changes no global setting until the user confirms a value. Being killed at
+any moment leaves the system exactly as it found it.
 
 ### Why not something else
 

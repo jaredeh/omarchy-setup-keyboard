@@ -150,12 +150,10 @@ Item {
 
   function beginTyping() {
     resetMeasurement()
-    suppressRepeat.running = true          // no synthetic events while measuring
     phase = "typing"
   }
 
   function finishTyping() {
-    restoreRepeat.running = true
     chosenDelay = suggestedDelay
     phase = "review"
     plot.requestPaint()
@@ -173,7 +171,8 @@ Item {
   // overlay stays up holding an exclusive grab on keyboard and pointer.
   // Tear down only.
   function close() {
-    if (phase === "typing") restoreRepeat.running = true
+    // Nothing to undo. This deliberately mutates no global state while it
+    // runs, so being killed at any moment leaves the system as it found it.
   }
 
   // What Escape actually calls. The shell invokes close() on the way through,
@@ -195,20 +194,6 @@ Item {
         if (root.chosenDelay === 0) root.chosenDelay = root.currentDelay
       }
     }
-  }
-
-  // hyprctl keyword does not work against Omarchy's Lua config on Hyprland
-  // 0.56 ("keyword can't work with non-legacy parsers") — and still exits 0.
-  Process {
-    id: suppressRepeat
-    command: ["hyprctl", "eval", "hl.config({ input = { repeat_delay = 2000 } })"]
-  }
-
-  // reload re-reads input.lua, so the managed block is the restore path and a
-  // crash mid-test self-heals on the next reload.
-  Process {
-    id: restoreRepeat
-    command: ["hyprctl", "reload"]
   }
 
   Process {
@@ -266,6 +251,11 @@ Item {
         }
 
         if (root.phase === "typing") {
+          // Qt synthesises repeat as flagged press/release pairs. Dropping
+          // both halves keeps the dwell pairing intact and stops repeats from
+          // filling the transcript, which is why this needs no global
+          // repeat_delay suppression to undo.
+          if (event.isAutoRepeat) return
           root.handlePress(event)
           root.typeChar(event)
           if (root.typed.length >= root.prompt.length) root.finishTyping()
